@@ -39,6 +39,7 @@ namespace PicoGK_Fasteners
         ///This method defines the fastener via custom inputs. Defaults to M5X10 SHCS . TODO: - more info on how it's used is needed here.
         ///</summary>
         public Fastener(
+            string sHead = "SHCS",
             string sDriver = "Hex", //TODO: change to Enum?
             float fLength = 10,
             float fThreadPitch = 0.8f,
@@ -49,7 +50,6 @@ namespace PicoGK_Fasteners
             float fDriverDepth = 2.5f,
             float fDriverSize = 4,
             string sStandard = "ISO",
-            string sHead = "SHCS",
             string sName = "M5",
             float fTapSize = 5,
             float fLooseFit = 5.8f,
@@ -98,7 +98,7 @@ namespace PicoGK_Fasteners
         // this function defines a hex shaped modulation using the shape ShapeKernel polygon utility functions.
         private float fGetHexModulation(float fPhi, float fLengthRatio)
         {
-            float fRadius = Uf.fGetPolygonRadius(fPhi, Uf.EPolygon.HEX)  * m_fDriverSize;
+            float fRadius = Uf.fGetPolygonRadius(fPhi, Uf.EPolygon.HEX) * m_fDriverSize; // TODO: fix so that it will create any size of Hex
             return fRadius;
         }
 
@@ -106,7 +106,7 @@ namespace PicoGK_Fasteners
         {
             float a = 2;
             float b = 1;
-            float fRadius= 
+            float fRadius =
                 1f
                 / MathF.Sqrt(
                     (
@@ -164,7 +164,7 @@ namespace PicoGK_Fasteners
                     //flattened sphere on top on top of short cylinder, then subtract driver.
                     float fEdgeHeight = 0.05f * m_fHeadDiameter; //TODO: correct with actual height
                     BaseCylinder oHeadEdge = new(HolePosition, fEdgeHeight, m_fHeadDiameter / 2);
-                    LocalFrame oButtonFrame = LocalFrame.oGetTranslatedFrame(
+                    LocalFrame oButtonFrame = LocalFrame.oGetRelativeFrame(
                         HolePosition,
                         new Vector3(0, 0, fEdgeHeight)
                     );
@@ -192,7 +192,7 @@ namespace PicoGK_Fasteners
         private Voxels Driver(LocalFrame HolePosition)
         {
             Voxels oDriver = new Voxels();
-            LocalFrame oTopofHead = LocalFrame.oGetTranslatedFrame(
+            LocalFrame oTopofHead = LocalFrame.oGetRelativeFrame(
                 HolePosition,
                 new Vector3(0, 0, m_fHeadHeight)
             );
@@ -206,7 +206,7 @@ namespace PicoGK_Fasteners
                 case "Philips":
                 {
                     //box, subtract flattened sphere. cross boxes, cut with cup.
-                    LocalFrame oCupFrame = LocalFrame.oGetTranslatedFrame(
+                    LocalFrame oCupFrame = LocalFrame.oGetRelativeFrame(
                         oTopofHead,
                         new Vector3(0, 0, -m_fDriverDepth / 2)
                     );
@@ -310,7 +310,7 @@ namespace PicoGK_Fasteners
             LocalFrame oPosition = HolePosition;
             if (WithWasher)
             {
-                oPosition = LocalFrame.oGetTranslatedFrame(
+                oPosition = LocalFrame.oGetRelativeFrame(
                     HolePosition,
                     new Vector3(0, 0, m_fWasherThickness)
                 );
@@ -330,14 +330,14 @@ namespace PicoGK_Fasteners
             LocalFrame oPosition = HolePosition;
             if (WithWasher)
             {
-                oPosition = LocalFrame.oGetTranslatedFrame(
+                oPosition = LocalFrame.oGetRelativeFrame(
                     HolePosition,
                     new Vector3(0, 0, m_fWasherThickness)
                 );
             }
-            Voxels oScrewThreaded = ScrewHead(oPosition) + MajorBody(oPosition);
+            Voxels oScrewBasic = ScrewHead(oPosition) + MajorBody(oPosition);
 
-            return oScrewThreaded;
+            return oScrewBasic;
         }
 
         ///<summary>
@@ -438,31 +438,24 @@ namespace PicoGK_Fasteners
 
         ///<summary>
         ///Returns a simple nut for the chosen fastener.
-        ///Use by locating with a LocalFrame, specfiying the distance from the head with Thickness,
-        ///and subtracting the resulting voxel body from your object.
+        ///Use by locating with a LocalFrame, specfiying the distance from the head with Thickness.
         ///</summary>
-        public Voxels Nut(LocalFrame HolePosition, float Thickness)
+        public Voxels Nut(LocalFrame HolePosition, float Gap)
         {
             m_iCountNuts++;
-            Vector3 vecThickness = new Vector3(
-                HolePosition.vecGetPosition().X,
-                HolePosition.vecGetPosition().Y,
-                HolePosition.vecGetPosition().Z + Thickness
-            );
-            LocalFrame HolePositionTranslated = LocalFrame.oGetTranslatedFrame(
+            LocalFrame HolePositionTranslated = LocalFrame.oGetRelativeFrame(
                 HolePosition,
-                vecThickness
+                new Vector3(0, 0, -Gap)
             );
-            Voxels oNut =
-                Hex(HolePositionTranslated, m_fNutHeight, m_fNutSize / MathF.Sqrt(3))
-                - HoleThreadedBasic(HolePositionTranslated);
+            Voxels oNut = Hex(HolePositionTranslated, m_fNutHeight, m_fNutSize / MathF.Sqrt(3))
+            //                - HoleThreadedBasic(HolePositionTranslated);
+            ;
             return oNut;
         }
 
         ///<summary>
         ///Returns a simple washer for the chosen fastener.
-        ///Use by locating with a LocalFrame, specfiying the distance from the head with Thickness,
-        ///and subtracting the resulting voxel body from your object.
+        ///Use by locating with a LocalFrame, specfiying the distance from the head with Thickness.
         ///</summary>
         public Voxels Washer(LocalFrame HolePosition) //Add nonstandard washers in the future?
         {
@@ -478,17 +471,16 @@ namespace PicoGK_Fasteners
 
         ///<summary>
         ///Returns a fastener-washer-gap-washer-nut stack for the chosen fastener.
-        ///Use by locating with a LocalFrame, specfiying the distance to the bottom washer from the top washer with Gap.,
-        ///and subtracting the resulting voxel body from your object.
+        ///Use by locating with a LocalFrame, specfiying the distance to the bottom washer from the top washer with Gap.
         ///</summary>
         public Voxels Stack(LocalFrame HolePosition, float Gap)
         {
             Voxels oStack =
                 ScrewBasic(HolePosition, true)
                 + Washer(HolePosition)
-                + Washer(LocalFrame.oGetTranslatedFrame(HolePosition, new Vector3(0, 0, -Gap)))
+                + Washer(LocalFrame.oGetRelativeFrame(HolePosition, new Vector3(0, 0, -Gap)))
                 + Nut(
-                    LocalFrame.oGetTranslatedFrame(
+                    LocalFrame.oGetRelativeFrame(
                         HolePosition,
                         new Vector3(0, 0, -m_fWasherThickness)
                     ),

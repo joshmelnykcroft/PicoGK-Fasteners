@@ -10,16 +10,33 @@ namespace CarinaLabs
     {
         public static void Task()
         {
-            LocalFrame oFrame = new();
-            Fastener oBolt = new();
-            Voxels voxBolt = oBolt.ScrewThreaded(oFrame);
-            Sh.PreviewVoxels(voxBolt, Cp.clrLavender, 1);
+            int iNumofExamples = 6;
+            LocalFrame oOrigin = new();
+            Fastener oSHCS = new();
+            Sh.PreviewVoxels(oSHCS.Nut(oOrigin, 0), Cp.clrRed, 1);
+            LocalFrame[] oDemoFrames = new LocalFrame[iNumofExamples];
 
-            Fastener oHexBolt = new("Hex", 15);
-            Voxels voxBolt2 = oHexBolt.ScrewBasic(
-                LocalFrame.oGetTranslatedFrame(oFrame, new Vector3(10, 0, 0))
-            );
-            Sh.PreviewVoxels(voxBolt2, Cp.clrGreen, 1);
+            for (int i = 0; i < iNumofExamples; i++)
+            {
+                LocalFrame oRotatedFrame = LocalFrame.oGetRotatedFrame(
+                    oOrigin,
+                    MathF.PI * (i + 1) * 2 / iNumofExamples,
+                    new Vector3(0, 1, 0)
+                );
+                LocalFrame oRelativeFrame = LocalFrame.oGetRelativeFrame(
+                    oRotatedFrame,
+                    new Vector3(0, 0, 30)
+                );
+                oDemoFrames[i] = oRelativeFrame;
+            }
+            Voxels voxDemo = oSHCS.ScrewThreaded(oDemoFrames[0]);
+            voxDemo = voxDemo + oSHCS.ScrewBasic(oDemoFrames[1]);
+            voxDemo = voxDemo + oSHCS.ScrewBasic(oDemoFrames[2], true);
+            voxDemo = voxDemo + oSHCS.Washer(oDemoFrames[2]);
+            voxDemo = voxDemo + oSHCS.Washer(oDemoFrames[3]);
+            voxDemo = voxDemo + oSHCS.Nut(oDemoFrames[4], 5);
+            voxDemo = voxDemo + oSHCS.Stack(oDemoFrames[5], 5);
+            Sh.PreviewVoxels(voxDemo, Cp.clrGray, 1);
         }
     }
 }
