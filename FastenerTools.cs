@@ -6,19 +6,39 @@ namespace PicoGK_Fasteners
 {
     public class Fastener
     {
-        protected string m_sStandard;
-        protected string m_sHeadType;
-        protected string m_sSizeName;
-        protected string m_sDriver;
+        //primary characteristics
 
+        public enum EHeadType
+        {
+            Hex,
+            Countersunk,
+            Button,
+            SHCS,
+        };
+
+        public enum EDriver
+        {
+            None,
+            Hex,
+            Philips,
+            Robinson,
+        };
+
+        protected EHeadType m_eHeadType;
+        protected EDriver m_eDriver;
+        protected string m_sDescription;
+        protected float m_fSize;
         protected float m_fLength;
-        protected float m_fTapSize;
         protected float m_fThreadPitch;
+
+        // Derived characteristics
+        protected float m_fTapSize;
         protected float m_fThreadMinor;
-        protected float m_fThreadMajor;
         protected float m_fLoosefit;
         protected float m_fClosefit;
         protected float m_fNormalfit;
+
+        //generic characteristics
         protected float m_fHeadDiameter;
         protected float m_fHeadHeight;
         protected float m_fBoreDiameter;
@@ -29,18 +49,21 @@ namespace PicoGK_Fasteners
         protected float m_fNutHeight;
         protected float m_fNutSize;
 
+        //counts for BOM TODO:check if necessary
         protected int m_iCountFasteners;
         protected int m_iCountNuts;
         protected int m_iCountWashers;
 
-        protected float m_fMinVoxel; //TODO: determine if this is necessary.
-
         ///<summary>
-        ///This method defines the fastener via custom inputs. Defaults to M5X10 SHCS . TODO: - more info on how it's used is needed here.
+        ///This method defines the fastener via custom inputs. Defaults to M5X10 SHCS .
+        ///Use this constructor if you have a fastener that you can measure, or if you
+        ///have accesses to the standards that your desired fastener is based on.
+        ///Any measurements of a Hex is done across the flats.
         ///</summary>
         public Fastener(
-            string sHead = "SHCS",
-            string sDriver = "Hex", //TODO: change to Enum?
+            string sDiscription = "M5X10 SHCS, Example Fastener",
+            EHeadType eHeadType = EHeadType.SHCS,
+            EDriver eDriver = EDriver.Hex,
             float fLength = 10,
             float fThreadPitch = 0.8f,
             float fThreadMajor = 5,
@@ -49,8 +72,6 @@ namespace PicoGK_Fasteners
             float fHeadDiameter = 8.72f,
             float fDriverDepth = 2.5f,
             float fDriverSize = 4,
-            string sStandard = "ISO",
-            string sName = "M5",
             float fTapSize = 5,
             float fLooseFit = 5.8f,
             float fCloseFit = 5.3f,
@@ -62,16 +83,14 @@ namespace PicoGK_Fasteners
             float fNutSize = 8.79f
         )
         {
-            m_sStandard = sStandard;
-            m_sHeadType = sHead;
-            m_sSizeName = sName;
-            m_sDriver = sDriver;
-
+            m_sDescription = sDiscription;
+            m_eHeadType = eHeadType;
+            m_eDriver = eDriver;
             m_fLength = fLength;
             m_fTapSize = fTapSize;
             m_fThreadPitch = fThreadPitch;
             m_fThreadMinor = fThreadMinor;
-            m_fThreadMajor = fThreadMajor;
+            m_fSize = fThreadMajor;
             m_fLoosefit = fLooseFit;
             m_fClosefit = fCloseFit;
             m_fNormalfit = fNormalfit;
@@ -86,15 +105,44 @@ namespace PicoGK_Fasteners
             m_fNutSize = fNutSize;
         }
 
-        /*
-                ///<summary>
-                /// This method defines the fastener via an ID code found here: TODO: figure this the fuck out.
-                /// </summary>
-                public Fastener(
-                    string FastenerID
-                //TODO: make library of fasteners using a yaml file.
-                ) { }
-        */
+        ///<summary>
+        /// This constuctor defines a generic fastener based on a few primary chararteristics.
+        /// If you have a standard or measurements of the fastener that you want to use, use the other constructor.
+        /// </summary>
+        public Fastener(
+            EHeadType eHeadType,
+            EDriver eDriver,
+            float Size,
+            float Length,
+            float ThreadPitch,
+            string Description
+        )
+        {
+            m_sDescription = Description;
+            m_fSize = Size;
+            m_fLength = Length;
+            m_fThreadPitch = ThreadPitch;
+
+            //Derived properties
+            m_fTapSize = Size - ThreadPitch;
+            m_fThreadMinor = Size - (1.082532f * ThreadPitch);
+
+            //Generic properties - these are for example only, these values are not based on specific standard only
+
+            m_fLoosefit = Size * 1.1f;
+            m_fClosefit = Size * 1.05f;
+            m_fNormalfit = Size * 1.075f;
+            m_fHeadDiameter = Size * 1.5f;
+            m_fHeadHeight = Size;
+            m_fBoreDiameter = m_fHeadDiameter * 1.25f;
+            m_fDriverDepth = m_fHeadHeight * 0.8f;
+            m_fDriverSize = Size;
+            m_fWasherDiameter = Size * 2;
+            m_fWasherThickness = Size * 0.1f;
+            m_fNutHeight = Size;
+            m_fNutSize = Size * 2.5f;
+        }
+
         // this function defines a hex shaped modulation using the shape ShapeKernel polygon utility functions.
         private float fGetHexModulation(float fPhi, float fLengthRatio)
         {
@@ -125,6 +173,17 @@ namespace PicoGK_Fasteners
             return oVoxels;
         }
 
+        private Voxels DrillTip(LocalFrame HolePosition, float fDrillRadius)
+        {
+            BaseCone oDrillTip = new BaseCone(
+                HolePosition,
+                fDrillRadius * (float)Math.Tan(41 * Math.PI / 180),
+                fDrillRadius,
+                0.0001f
+            );
+            return oDrillTip.voxConstruct();
+        }
+
         private Voxels Hex(LocalFrame HolePosition, float fHeight, float fRadius)
         {
             BaseCylinder oShape = new BaseCylinder(HolePosition, fHeight);
@@ -136,20 +195,21 @@ namespace PicoGK_Fasteners
         private Voxels ScrewHead(LocalFrame HolePosition)
         {
             Voxels oScrewHead = new Voxels();
-            switch (m_sHeadType)
+            switch (m_eHeadType)
             {
-                case "Hex":
+                case EHeadType.Hex:
                     oScrewHead = Hex(HolePosition, m_fHeadHeight, m_fHeadDiameter / MathF.Sqrt(3)); // TODO:specify that for hexes size is measured accross flats
                     break;
-                case "Countersunk":
+                case EHeadType.Countersunk:
                     //beam with calculated angle, and subtracted body to make flat top, then subtract driver. TODO: add angle other than 82 degrees
                     float fHeight =
-                        (m_fHeadDiameter - m_fMinVoxel) * (float)Math.Tan(41 * Math.PI / 180);
+                        (m_fHeadDiameter - (m_fHeadDiameter * .0001f))
+                        * (float)Math.Tan(41 * Math.PI / 180);
                     BaseCone oCSHead = new BaseCone(
                         HolePosition,
                         fHeight,
                         m_fHeadDiameter / 2,
-                        m_fMinVoxel
+                        m_fHeadDiameter * .0001f
                     );
                     // is this oFlatTop necessary?TODO:check
                     BaseCylinder oFlatTop = new BaseCylinder(
@@ -160,7 +220,7 @@ namespace PicoGK_Fasteners
                     oScrewHead =
                         oCSHead.voxConstruct() - oFlatTop.voxConstruct() - Driver(HolePosition);
                     break;
-                case "Button":
+                case EHeadType.Button:
                     //flattened sphere on top on top of short cylinder, then subtract driver.
                     float fEdgeHeight = 0.05f * m_fHeadDiameter; //TODO: correct with actual height
                     BaseCylinder oHeadEdge = new(HolePosition, fEdgeHeight, m_fHeadDiameter / 2);
@@ -173,7 +233,7 @@ namespace PicoGK_Fasteners
                         + FlattenedSphere(HolePosition)
                         - Driver(HolePosition);
                     break;
-                case "SHCS":
+                case EHeadType.SHCS:
                     BaseCylinder oSHCSBody = new BaseCylinder(
                         HolePosition,
                         m_fHeadHeight,
@@ -196,14 +256,14 @@ namespace PicoGK_Fasteners
                 HolePosition,
                 new Vector3(0, 0, m_fHeadHeight)
             );
-            switch (m_sDriver)
+            switch (m_eDriver)
             {
-                case "Hex":
+                case EDriver.Hex:
                 {
                     oDriver = Hex(oTopofHead, -m_fDriverDepth, m_fDriverSize / MathF.Sqrt(3));
                     break;
                 }
-                case "Philips":
+                case EDriver.Philips:
                 {
                     //box, subtract flattened sphere. cross boxes, cut with cup.
                     LocalFrame oCupFrame = LocalFrame.oGetRelativeFrame(
@@ -233,7 +293,7 @@ namespace PicoGK_Fasteners
                     oDriver = oDriverCross2.voxConstruct() + oDriverCross1.voxConstruct() - voxCup;
                     break;
                 }
-                case "Robinson":
+                case EDriver.Robinson:
                 {
                     BaseBox oRobinson = new BaseBox(
                         oTopofHead,
@@ -243,6 +303,10 @@ namespace PicoGK_Fasteners
                     );
                     oDriver = oRobinson.voxConstruct();
                     break;
+                }
+                case EDriver.None:
+                {
+                    return oDriver;
                 }
             }
             return oDriver;
@@ -266,11 +330,7 @@ namespace PicoGK_Fasteners
         ///</summary>
         private Voxels MajorBody(LocalFrame HolePosition)
         {
-            BaseCylinder oMajorBody = new BaseCylinder(
-                HolePosition,
-                -m_fLength,
-                m_fThreadMajor / 2
-            );
+            BaseCylinder oMajorBody = new BaseCylinder(HolePosition, -m_fLength, m_fSize / 2);
             return oMajorBody.voxConstruct();
         }
 
@@ -290,7 +350,7 @@ namespace PicoGK_Fasteners
             {
                 float dS = fPhi / (2f * MathF.PI) * -m_fThreadPitch;
                 Vector3 vecRel1 = VecOperations.vecGetCylPoint(m_fThreadMinor / 2, fPhi, dS);
-                Vector3 vecRel2 = VecOperations.vecGetCylPoint(m_fThreadMajor / 2, fPhi, dS);
+                Vector3 vecRel2 = VecOperations.vecGetCylPoint(m_fSize / 2, fPhi, dS);
                 Vector3 vecPt1 = VecOperations.vecTranslatePointOntoFrame(HolePosition, vecRel1);
                 Vector3 vecPt2 = VecOperations.vecTranslatePointOntoFrame(HolePosition, vecRel2);
                 oLattice.AddBeam(vecPt1, fBeam1, vecPt2, fBeam2, false);
@@ -300,11 +360,23 @@ namespace PicoGK_Fasteners
             return oThreads;
         }
 
+        private Voxels EndChamfer(LocalFrame HolePosition)
+        {
+            Vector3 vecOffsetFromEnd = new Vector3(0, 0, m_fLength - (m_fSize / 6));
+            LocalFrame oOffsetFromEnd = LocalFrame.oGetRelativeFrame(
+                HolePosition,
+                vecOffsetFromEnd
+            );
+            BaseCylinder oBody = new(oOffsetFromEnd, m_fSize, m_fSize);
+            BaseCone oCone = new(oOffsetFromEnd, m_fSize, m_fSize, .1f);
+            return oBody.voxConstruct() - oCone.voxConstruct();
+        }
+
         ///<summary>
         ///This returns a cosmetically threaded screw with the size and head type specified.
         ///Takes a position from a LocalFrame.
         ///</summary>
-        public Voxels ScrewThreaded(LocalFrame HolePosition, bool WithWasher = false) // TODO: add chamfer to end of screw
+        public Voxels ScrewThreaded(LocalFrame HolePosition, bool WithWasher = false)
         {
             m_iCountFasteners++;
             LocalFrame oPosition = HolePosition;
@@ -316,7 +388,10 @@ namespace PicoGK_Fasteners
                 );
             }
             Voxels oScrewThreaded =
-                ScrewHead(oPosition) + MinorBody(oPosition) + Threads(oPosition);
+                ScrewHead(oPosition)
+                + MinorBody(oPosition)
+                + Threads(oPosition)
+                - EndChamfer(oPosition);
             return oScrewThreaded;
         }
 
@@ -335,7 +410,8 @@ namespace PicoGK_Fasteners
                     new Vector3(0, 0, m_fWasherThickness)
                 );
             }
-            Voxels oScrewBasic = ScrewHead(oPosition) + MajorBody(oPosition);
+            Voxels oScrewBasic =
+                ScrewHead(oPosition) + MajorBody(oPosition) - EndChamfer(oPosition);
 
             return oScrewBasic;
         }
@@ -366,7 +442,7 @@ namespace PicoGK_Fasteners
 
             float m_fHoleRadius = m_fFit / 2;
             BaseCylinder oHole = new BaseCylinder(HolePosition, -m_fLength, m_fHoleRadius);
-            Voxels oHoleClearance = oHole.voxConstruct(); //TODO:- add drill tip cone with a lattice beam.
+            Voxels oHoleClearance = oHole.voxConstruct() + DrillTip(HolePosition, m_fHoleRadius);
             return oHoleClearance;
         }
 
@@ -398,12 +474,13 @@ namespace PicoGK_Fasteners
         public Voxels HoleCountersunk(LocalFrame HolePosition)
         {
             float fHeight =
-                (m_fHeadDiameter / 2 - m_fMinVoxel) * (float)Math.Tan(41 * Math.PI / 180); //WARN:the diameter for a cs hole might be a bit bigger
+                (m_fHeadDiameter / 2 - (m_fHeadDiameter * 0.0001f))
+                * (float)Math.Tan(41 * Math.PI / 180); //WARN:the diameter for a cs hole might be a bit bigger
             BaseCone oCountersink = new BaseCone(
                 HolePosition,
                 -fHeight,
                 m_fHeadDiameter / 2,
-                m_fMinVoxel
+                m_fHeadDiameter * 0.0001f
             );
             Voxels oCSHole = HoleClearence(HolePosition) + oCountersink.voxConstruct();
             return oCSHole;
@@ -433,7 +510,7 @@ namespace PicoGK_Fasteners
                 m_fLength + m_fExtra,
                 m_fTapSize
             );
-            return oTapDrill.voxConstruct();
+            return oTapDrill.voxConstruct() + DrillTip(HolePosition, m_fTapSize);
         }
 
         ///<summary>
