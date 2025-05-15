@@ -13,7 +13,6 @@ namespace CarinaLabs
             int iNumofExamples = 6;
             LocalFrame oOrigin = new();
             Fastener oSHCS = new();
-            Sh.PreviewVoxels(oSHCS.Nut(oOrigin, 0), Cp.clrRed, 1);
             LocalFrame[] oDemoFrames = new LocalFrame[iNumofExamples];
 
             for (int i = 0; i < iNumofExamples; i++)
@@ -29,13 +28,19 @@ namespace CarinaLabs
                 );
                 oDemoFrames[i] = oRelativeFrame;
             }
-            Voxels voxDemo = oSHCS.ScrewThreaded(oDemoFrames[0]);
-            voxDemo = voxDemo + oSHCS.ScrewBasic(oDemoFrames[1]);
-            voxDemo = voxDemo + oSHCS.ScrewBasic(oDemoFrames[2], true);
-            voxDemo = voxDemo + oSHCS.Washer(oDemoFrames[2]);
-            voxDemo = voxDemo + oSHCS.Washer(oDemoFrames[3]);
-            voxDemo = voxDemo + oSHCS.Nut(oDemoFrames[4], 5);
-            voxDemo = voxDemo + oSHCS.Stack(oDemoFrames[5], 5);
+            Voxels voxDemo = oSHCS.ScrewBasic(oDemoFrames[0]);
+            Sh.PreviewVoxels(voxDemo, Cp.clrGray, 1);
+            voxDemo = oSHCS.ScrewThreaded(oDemoFrames[1]);
+            Sh.PreviewVoxels(voxDemo, Cp.clrGray, 1);
+            voxDemo = oSHCS.ScrewBasic(oDemoFrames[2], true);
+            Sh.PreviewVoxels(voxDemo, Cp.clrGray, 1);
+            voxDemo = oSHCS.Washer(oDemoFrames[2]);
+            Sh.PreviewVoxels(voxDemo, Cp.clrGray, 1);
+            voxDemo = oSHCS.Washer(oDemoFrames[3]);
+            Sh.PreviewVoxels(voxDemo, Cp.clrGray, 1);
+            voxDemo = oSHCS.Nut(oDemoFrames[4], 5);
+            Sh.PreviewVoxels(voxDemo, Cp.clrGray, 1);
+            voxDemo = oSHCS.Stack(oDemoFrames[5], 5);
             Sh.PreviewVoxels(voxDemo, Cp.clrGray, 1);
         }
     }

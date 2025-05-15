@@ -116,7 +116,7 @@ namespace PicoGK_Fasteners
             float Length,
             float ThreadPitch,
             string Description
-        )
+        ) //TODO: change these names so the match other constuctor
         {
             m_sDescription = Description;
             m_fSize = Size;
@@ -362,13 +362,13 @@ namespace PicoGK_Fasteners
 
         private Voxels EndChamfer(LocalFrame HolePosition)
         {
-            Vector3 vecOffsetFromEnd = new Vector3(0, 0, m_fLength - (m_fSize / 6));
+            Vector3 vecOffsetFromEnd = new Vector3(0, 0, -m_fLength + (m_fSize / 8));
             LocalFrame oOffsetFromEnd = LocalFrame.oGetRelativeFrame(
                 HolePosition,
                 vecOffsetFromEnd
             );
-            BaseCylinder oBody = new(oOffsetFromEnd, m_fSize, m_fSize);
-            BaseCone oCone = new(oOffsetFromEnd, m_fSize, m_fSize, .1f);
+            BaseCylinder oBody = new(oOffsetFromEnd, -m_fSize, m_fSize / 2);
+            BaseCone oCone = new(oOffsetFromEnd, -m_fSize / 2, m_fSize / 2, .001f);
             return oBody.voxConstruct() - oCone.voxConstruct();
         }
 
@@ -517,14 +517,14 @@ namespace PicoGK_Fasteners
         ///Returns a simple nut for the chosen fastener.
         ///Use by locating with a LocalFrame, specfiying the distance from the head with Thickness.
         ///</summary>
-        public Voxels Nut(LocalFrame HolePosition, float Gap)
+        public Voxels Nut(LocalFrame HolePosition, float Gap) //TODO: need to fix this, showing up without a hole, and wrong size
         {
             m_iCountNuts++;
             LocalFrame HolePositionTranslated = LocalFrame.oGetRelativeFrame(
                 HolePosition,
                 new Vector3(0, 0, -Gap)
             );
-            Voxels oNut = Hex(HolePositionTranslated, m_fNutHeight, m_fNutSize / MathF.Sqrt(3))
+            Voxels oNut = Hex(HolePositionTranslated, -m_fNutHeight, m_fNutSize / MathF.Sqrt(3))
             //                - HoleThreadedBasic(HolePositionTranslated);
             ;
             return oNut;
@@ -555,7 +555,12 @@ namespace PicoGK_Fasteners
             Voxels oStack =
                 ScrewBasic(HolePosition, true)
                 + Washer(HolePosition)
-                + Washer(LocalFrame.oGetRelativeFrame(HolePosition, new Vector3(0, 0, -Gap)))
+                + Washer(
+                    LocalFrame.oGetRelativeFrame(
+                        HolePosition,
+                        new Vector3(0, 0, -Gap - m_fWasherThickness)
+                    )
+                )
                 + Nut(
                     LocalFrame.oGetRelativeFrame(
                         HolePosition,
