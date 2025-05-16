@@ -48,6 +48,7 @@ namespace PicoGK_Fasteners
         protected float m_fWasherThickness;
         protected float m_fNutHeight;
         protected float m_fNutSize;
+        protected float m_fHexSize;
 
         //counts for BOM TODO:check if necessary
         protected int m_iCountFasteners;
@@ -80,7 +81,7 @@ namespace PicoGK_Fasteners
             float fWasherDiameter = 15,
             float fWasherThickness = 1.2f,
             float fNutHeight = 4,
-            float fNutSize = 8.79f
+            float fNutSize = 7.79f
         )
         {
             m_sDescription = sDiscription;
@@ -146,7 +147,7 @@ namespace PicoGK_Fasteners
         // this function defines a hex shaped modulation using the shape ShapeKernel polygon utility functions.
         private float fGetHexModulation(float fPhi, float fLengthRatio)
         {
-            float fRadius = Uf.fGetPolygonRadius(fPhi, Uf.EPolygon.HEX) * m_fDriverSize; // TODO: fix so that it will create any size of Hex
+            float fRadius = Uf.fGetPolygonRadius(fPhi, Uf.EPolygon.HEX) * m_fHexSize;
             return fRadius;
         }
 
@@ -187,6 +188,7 @@ namespace PicoGK_Fasteners
         private Voxels Hex(LocalFrame HolePosition, float fHeight, float fRadius)
         {
             BaseCylinder oShape = new BaseCylinder(HolePosition, fHeight);
+            m_fHexSize = fRadius;
             oShape.SetRadius(new SurfaceModulation(fGetHexModulation));
             Voxels oVoxels = oShape.voxConstruct();
             return oVoxels;
@@ -260,7 +262,7 @@ namespace PicoGK_Fasteners
             {
                 case EDriver.Hex:
                 {
-                    oDriver = Hex(oTopofHead, -m_fDriverDepth, m_fDriverSize / MathF.Sqrt(3));
+                    oDriver = Hex(oTopofHead, -m_fDriverDepth, (m_fDriverSize * MathF.Sqrt(3)) / 3);
                     break;
                 }
                 case EDriver.Philips:
@@ -524,9 +526,10 @@ namespace PicoGK_Fasteners
                 HolePosition,
                 new Vector3(0, 0, -Gap)
             );
-            Voxels oNut = Hex(HolePositionTranslated, -m_fNutHeight, m_fNutSize / MathF.Sqrt(3))
-            //                - HoleThreadedBasic(HolePositionTranslated);
-            ;
+            Voxels oNut =
+                Hex(HolePositionTranslated, -m_fNutHeight, (m_fNutSize * MathF.Sqrt(3)) / 3)
+                - HoleThreadedBasic(HolePositionTranslated);
+
             return oNut;
         }
 
