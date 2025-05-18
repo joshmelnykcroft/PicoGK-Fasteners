@@ -109,39 +109,40 @@ namespace PicoGK_Fasteners
         ///<summary>
         /// This constuctor defines a generic fastener based on a few primary chararteristics.
         /// If you have a standard or measurements of the fastener that you want to use, use the other constructor.
+        ///Any measurements of a Hex is done across the flats.
         /// </summary>
         public Fastener(
             EHeadType eHeadType,
             EDriver eDriver,
-            float Size,
-            float Length,
-            float ThreadPitch,
-            string Description
-        ) //TODO: change these names so the match other constuctor
+            float fSize,
+            float fLength,
+            float fThreadPitch,
+            string sDescription
+        )
         {
-            m_sDescription = Description;
-            m_fSize = Size;
-            m_fLength = Length;
-            m_fThreadPitch = ThreadPitch;
+            m_sDescription = sDescription;
+            m_fSize = fSize;
+            m_fLength = fLength;
+            m_fThreadPitch = fThreadPitch;
 
             //Derived properties
-            m_fTapSize = Size - ThreadPitch;
-            m_fThreadMinor = Size - (1.082532f * ThreadPitch);
+            m_fTapSize = fSize - fThreadPitch;
+            m_fThreadMinor = fSize - (1.082532f * fThreadPitch);
 
             //Generic properties - these are for example only, these values are not based on specific standard only
 
-            m_fLoosefit = Size * 1.1f;
-            m_fClosefit = Size * 1.05f;
-            m_fNormalfit = Size * 1.075f;
-            m_fHeadDiameter = Size * 1.5f;
-            m_fHeadHeight = Size;
+            m_fLoosefit = fSize * 1.1f;
+            m_fClosefit = fSize * 1.05f;
+            m_fNormalfit = fSize * 1.075f;
+            m_fHeadDiameter = fSize * 1.5f; //TODO: check if this works for hex heads?
+            m_fHeadHeight = fSize;
             m_fBoreDiameter = m_fHeadDiameter * 1.25f;
             m_fDriverDepth = m_fHeadHeight * 0.8f;
-            m_fDriverSize = Size;
-            m_fWasherDiameter = Size * 2;
-            m_fWasherThickness = Size * 0.1f;
-            m_fNutHeight = Size;
-            m_fNutSize = Size * 2.5f;
+            m_fDriverSize = fSize;
+            m_fWasherDiameter = fSize * 2;
+            m_fWasherThickness = fSize * 0.1f;
+            m_fNutHeight = fSize;
+            m_fNutSize = fSize * 2.5f;
         }
 
         // this function defines a hex shaped modulation using the shape ShapeKernel polygon utility functions.
@@ -200,13 +201,16 @@ namespace PicoGK_Fasteners
             switch (m_eHeadType)
             {
                 case EHeadType.Hex:
-                    oScrewHead = Hex(HolePosition, m_fHeadHeight, m_fHeadDiameter / MathF.Sqrt(3)); // TODO:specify that for hexes size is measured accross flats
+                    oScrewHead = Hex(
+                        HolePosition,
+                        m_fHeadHeight,
+                        (m_fHeadDiameter * MathF.Sqrt(3)) / 3
+                    );
                     break;
                 case EHeadType.Countersunk:
-                    //beam with calculated angle, and subtracted body to make flat top, then subtract driver. TODO: add angle other than 82 degrees
                     float fHeight =
                         (m_fHeadDiameter - (m_fHeadDiameter * .0001f))
-                        * (float)Math.Tan(41 * Math.PI / 180);
+                        * (float)Math.Tan(41 * Math.PI / 180); // Currently defaults to an 82 degree countersink
                     BaseCone oCSHead = new BaseCone(
                         HolePosition,
                         fHeight,
@@ -223,8 +227,7 @@ namespace PicoGK_Fasteners
                         oCSHead.voxConstruct() - oFlatTop.voxConstruct() - Driver(HolePosition);
                     break;
                 case EHeadType.Button:
-                    //flattened sphere on top on top of short cylinder, then subtract driver.
-                    float fEdgeHeight = 0.05f * m_fHeadDiameter; //TODO: correct with actual height
+                    float fEdgeHeight = 0.05f * m_fHeadDiameter;
                     BaseCylinder oHeadEdge = new(HolePosition, fEdgeHeight, m_fHeadDiameter / 2);
                     LocalFrame oButtonFrame = LocalFrame.oGetRelativeFrame(
                         HolePosition,
@@ -451,20 +454,26 @@ namespace PicoGK_Fasteners
         ///<summary>
         ///Returns a threaded cylinder for use in creating cosmetically threaded holes.
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
+        ///Depth of the tapped section of the hole is equal to the length of the fastener plus three threads.
         ///</summary>
         public Voxels HoleThreaded(LocalFrame HolePosition)
         {
-            Voxels oTap = TapDrill(HolePosition) + MinorBody(HolePosition) + Threads(HolePosition);
+            Voxels oTap =
+                TapDrill(HolePosition, m_fLength + 3 * m_fThreadPitch)
+                + MinorBody(HolePosition)
+                + Threads(HolePosition);
             return oTap;
         }
 
         ///<summary>
         ///Returns a non-threaded cylinder for use in creating holes with the minor diameter of the chosen fastener..
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
+        ///Depth of the tapped section of the hole is equal to the length of the fastener plus three threads.
         ///</summary>
         public Voxels HoleThreadedBasic(LocalFrame HolePosition)
         {
-            Voxels oTapMinor = TapDrill(HolePosition) + MinorBody(HolePosition);
+            Voxels oTapMinor =
+                TapDrill(HolePosition, m_fLength + 3 * m_fThreadPitch) + MinorBody(HolePosition);
             return oTapMinor;
         }
 
@@ -475,9 +484,10 @@ namespace PicoGK_Fasteners
         ///</summary>
         public Voxels HoleCountersunk(LocalFrame HolePosition)
         {
+            //TODO: Add a option for a height offset so that the head of the screw does not have to be flush with the surface.
             float fHeight =
                 (m_fHeadDiameter / 2 - (m_fHeadDiameter * 0.0001f))
-                * (float)Math.Tan(41 * Math.PI / 180); //WARN:the diameter for a cs hole might be a bit bigger
+                * (float)Math.Tan(41 * Math.PI / 180);
             BaseCone oCountersink = new BaseCone(
                 HolePosition,
                 -fHeight,
@@ -503,10 +513,11 @@ namespace PicoGK_Fasteners
         ///<summary>
         ///Returns a hole sized for a tap for the chosen fastener. Don't forget to account for tool access for your tap!
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
+        ///Drills to a depth equal to the length specifed plus 1/2 the major diameter of the tap.
         ///</summary>
-        public Voxels TapDrill(LocalFrame HolePosition)
+        public Voxels TapDrill(LocalFrame HolePosition, float Depth)
         {
-            float m_fExtra = m_fLength * 0.10f; //TODO: check to see if 10% is actually a standard, and write it in the summary
+            float m_fExtra = Depth + (m_fSize / 2);
             BaseCylinder oTapDrill = new BaseCylinder(
                 HolePosition,
                 m_fLength + m_fExtra,
@@ -517,9 +528,9 @@ namespace PicoGK_Fasteners
 
         ///<summary>
         ///Returns a simple nut for the chosen fastener.
-        ///Use by locating with a LocalFrame, specfiying the distance from the head with Thickness.
+        ///Use by locating with a LocalFrame, specfiying the distance from the head with Gap.
         ///</summary>
-        public Voxels Nut(LocalFrame HolePosition, float Gap) //TODO: need to fix this, showing up without a hole, and wrong size
+        public Voxels Nut(LocalFrame HolePosition, float Gap)
         {
             m_iCountNuts++;
             LocalFrame HolePositionTranslated = LocalFrame.oGetRelativeFrame(
