@@ -73,7 +73,7 @@ namespace PicoGK_Fasteners
             float fHeadDiameter = 8.72f,
             float fDriverDepth = 2.5f,
             float fDriverSize = 4,
-            float fTapSize = 5,
+            float fTapSize = 4.2f,
             float fLooseFit = 5.8f,
             float fCloseFit = 5.3f,
             float fNormalfit = 5.5f,
@@ -179,7 +179,7 @@ namespace PicoGK_Fasteners
         {
             BaseCone oDrillTip = new BaseCone(
                 HolePosition,
-                fDrillRadius * (float)Math.Tan(41 * Math.PI / 180),
+                -fDrillRadius * (float)Math.Tan(41 * Math.PI / 180),
                 fDrillRadius,
                 0.0001f
             );
@@ -344,9 +344,9 @@ namespace PicoGK_Fasteners
         ///representations, use a tap or die when manufacturing along with the tapdrill method.
         ///Takes a position from a LocalFrame.
         ///</summary>
-        private Voxels Threads(LocalFrame HolePosition)
+        private Voxels Threads(LocalFrame HolePosition, float Length)
         {
-            float fTurns = m_fLength / m_fThreadPitch;
+            float fTurns = Length / m_fThreadPitch;
 
             float fBeam1 = 0.5f * m_fThreadPitch;
             float fBeam2 = 0.1f;
@@ -395,7 +395,7 @@ namespace PicoGK_Fasteners
             Voxels oScrewThreaded =
                 ScrewHead(oPosition)
                 + MinorBody(oPosition)
-                + Threads(oPosition)
+                + Threads(oPosition, m_fLength)
                 - EndChamfer(oPosition);
             return oScrewThreaded;
         }
@@ -423,7 +423,8 @@ namespace PicoGK_Fasteners
 
         ///<summary>
         ///This method provide a cylinder sized for a clearance fit for the parent fastener.
-        ///Holefit =1 is a close fit, =2 is a normal fit, =3 is a loose fit, and =0 is a custom fit
+        ///Holefit =1 is a close fit, =2 is a normal fit, =3 is a loose fit, and =0 is a
+        ///custom fit where you define your desired hole diameter in the last valuc customFit.
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
         ///</summary>
         public Voxels HoleClearence(LocalFrame HolePosition, int HoleFit = 2, float customFit = 0)
@@ -447,7 +448,12 @@ namespace PicoGK_Fasteners
 
             float m_fHoleRadius = m_fFit / 2;
             BaseCylinder oHole = new BaseCylinder(HolePosition, -m_fLength, m_fHoleRadius);
-            Voxels oHoleClearance = oHole.voxConstruct() + DrillTip(HolePosition, m_fHoleRadius);
+            Voxels oHoleClearance =
+                oHole.voxConstruct()
+                + DrillTip(
+                    LocalFrame.oGetRelativeFrame(HolePosition, new Vector3(0, 0, -m_fLength)),
+                    m_fHoleRadius
+                );
             return oHoleClearance;
         }
 
@@ -459,9 +465,9 @@ namespace PicoGK_Fasteners
         public Voxels HoleThreaded(LocalFrame HolePosition)
         {
             Voxels oTap =
-                TapDrill(HolePosition, m_fLength + 3 * m_fThreadPitch)
+                TapDrill(HolePosition)
                 + MinorBody(HolePosition)
-                + Threads(HolePosition);
+                + Threads(HolePosition, m_fLength + (3 * m_fThreadPitch));
             return oTap;
         }
 
@@ -470,12 +476,13 @@ namespace PicoGK_Fasteners
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
         ///Depth of the tapped section of the hole is equal to the length of the fastener plus three threads.
         ///</summary>
+        /* Minor diameter will always be smaller than tap drill diameter, so this method is unnecessary?
         public Voxels HoleThreadedBasic(LocalFrame HolePosition)
         {
-            Voxels oTapMinor =
-                TapDrill(HolePosition, m_fLength + 3 * m_fThreadPitch) + MinorBody(HolePosition);
+            Voxels oTapMinor = TapDrill(HolePosition) + MinorBody(HolePosition);
             return oTapMinor;
         }
+        */
 
         ///<summary>
         ///Returns a countersunk clearance hole.
@@ -515,15 +522,16 @@ namespace PicoGK_Fasteners
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
         ///Drills to a depth equal to the length specifed plus 1/2 the major diameter of the tap.
         ///</summary>
-        public Voxels TapDrill(LocalFrame HolePosition, float Depth)
+        public Voxels TapDrill(LocalFrame HolePosition)
         {
-            float m_fExtra = Depth + (m_fSize / 2);
-            BaseCylinder oTapDrill = new BaseCylinder(
-                HolePosition,
-                m_fLength + m_fExtra,
-                m_fTapSize
-            );
-            return oTapDrill.voxConstruct() + DrillTip(HolePosition, m_fTapSize);
+            float m_fTapDepth = m_fLength + (m_fSize / 2) + (3 * m_fThreadPitch);
+
+            BaseCylinder oTapDrill = new BaseCylinder(HolePosition, -m_fTapDepth, m_fTapSize / 2);
+            return oTapDrill.voxConstruct()
+                + DrillTip(
+                    LocalFrame.oGetRelativeFrame(HolePosition, new Vector3(0, 0, -m_fTapDepth)),
+                    m_fTapSize / 2
+                );
         }
 
         ///<summary>
@@ -539,7 +547,7 @@ namespace PicoGK_Fasteners
             );
             Voxels oNut =
                 Hex(HolePositionTranslated, -m_fNutHeight, (m_fNutSize * MathF.Sqrt(3)) / 3)
-                - HoleThreadedBasic(HolePositionTranslated);
+                - TapDrill(HolePositionTranslated);
 
             return oNut;
         }
