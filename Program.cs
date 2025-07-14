@@ -1,6 +1,6 @@
 ﻿try
 {
-    PicoGK.Library.Go(0.1f, CarinaLabs.FastenerExample.Task);
+    PicoGK.Library.Go(0.1f, CarinaLabs.MiniTest.Task);
 }
 catch (Exception e)
 {

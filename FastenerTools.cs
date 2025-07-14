@@ -182,26 +182,23 @@ namespace PicoGK_Fasteners
             );
         }
 
-        //This method flattens a sphere
-        private static float fGetSphereRadius0(float fPhi, float fRatio)
+        //This method flattens a sphere by a given ratio
+        private float fGetSphereRadius0(float fPhi)
         {
+            float fRatio = 0.5f;
             float fRadius =
-               (fRatio*m_fHeadDiameter) 
+                (fRatio * m_fHeadDiameter)
                 / MathF.Sqrt(
-                    
-                        MathF.Pow(fRatio,2)*(MathF.Pow(MathF.Cos(fPhi), 2) 
-                        + MathF.Pow(MathF.Sin(fPhi), 2) 
-                    
+                    MathF.Pow(fRatio, 2)
+                        * (MathF.Pow(MathF.Cos(fPhi), 2) + MathF.Pow(MathF.Sin(fPhi), 2))
                 );
-            return fRadius ;
-            */
-          
+            return fRadius;
         }
 
         private Voxels FlattenedSphere(LocalFrame HolePosition, float Diameter) // TODO: add size controls
         {
             BaseSphere oShape = new BaseSphere(HolePosition, Diameter / 2);
-            oShape.SetRadius(new SurfaceModulation(fGetSphereRadius0));
+            oShape.SetRadius(new SurfaceModulation(fGetSphereRadius0(fPhi)));
             Voxels oVoxels = oShape.voxConstruct();
             return oVoxels;
         }
