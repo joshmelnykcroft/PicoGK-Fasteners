@@ -14,7 +14,7 @@ namespace CarinaLabs
             Fastener ExampleFastener = new(
                 Fastener.EHeadType.Button,
                 Fastener.EDriver.Hex,
-                4,
+                3,
                 10,
                 1,
                 "Generic test Fastener"
