@@ -248,6 +248,7 @@ namespace PicoGK_Fasteners
                         m_fHeadDiameter * .0001f
                     );
                     oScrewHead = oCSHead.voxConstruct() - Driver(HolePosition);
+                    m_fHeadHeight = 0;
                     break;
                 case EHeadType.Button:
                     float fEdgeHeight = 0.05f * m_fHeadDiameter;
@@ -262,6 +263,7 @@ namespace PicoGK_Fasteners
                         + FlattenedSphere(oButtonFrame, m_fHeadDiameter)
                         - oTrim.voxConstruct()
                         - Driver(HolePosition);
+                    m_fHeadHeight = fEdgeHeight + (m_fHeadDiameter / 2);
                     break;
                 case EHeadType.SHCS:
                     BaseCylinder oSHCSBody = new BaseCylinder(
@@ -276,7 +278,7 @@ namespace PicoGK_Fasteners
             return oScrewHead;
         }
 
-        private Voxels Driver(LocalFrame HolePosition)
+        private Voxels Driver(LocalFrame HolePosition) //TODO: These need draft angles
         {
             Voxels oDriver = new Voxels();
             LocalFrame oTopofHead = FrameOffset(HolePosition, new Vector3(0, 0, m_fHeadHeight));
@@ -296,23 +298,23 @@ namespace PicoGK_Fasteners
                     );
                     BaseBox oCup = new BaseBox(
                         oCupFrame,
+                        -m_fDriverDepth / 2,
                         m_fDriverSize / 2,
-                        m_fDriverSize / 2,
-                        -m_fDriverDepth / 2
+                        m_fDriverSize / 2
                     );
                     Voxels voxCup = oCup.voxConstruct() - FlattenedSphere(oCupFrame, m_fDriverSize);
 
                     BaseBox oDriverCross1 = new BaseBox(
                         oTopofHead,
+                        -m_fDriverDepth,
                         m_fDriverSize,
-                        m_fDriverSize / 10,
-                        -m_fDriverDepth
+                        m_fDriverSize / 5
                     );
                     BaseBox oDriverCross2 = new BaseBox(
                         oTopofHead,
-                        m_fDriverSize / 10,
-                        m_fDriverSize,
-                        -m_fDriverDepth
+                        -m_fDriverDepth,
+                        m_fDriverSize / 5,
+                        m_fDriverSize
                     );
                     oDriver = oDriverCross2.voxConstruct() + oDriverCross1.voxConstruct() - voxCup;
                     break;
@@ -321,9 +323,9 @@ namespace PicoGK_Fasteners
                 {
                     BaseBox oRobinson = new BaseBox(
                         oTopofHead,
+                        -m_fDriverDepth,
                         m_fDriverSize,
-                        m_fDriverSize,
-                        -m_fDriverDepth
+                        m_fDriverSize
                     );
                     oDriver = oRobinson.voxConstruct();
                     break;
@@ -363,7 +365,7 @@ namespace PicoGK_Fasteners
         ///representations, use a tap or die when manufacturing along with the tapdrill method.
         ///Takes a position from a LocalFrame.
         ///</summary>
-        private Voxels Threads(LocalFrame HolePosition, float Length)
+        private Voxels Threads(LocalFrame HolePosition, float Length) //TODO: extend threads out by one thread, then trim
         {
             float fTurns = Length / m_fThreadPitch;
 
@@ -399,7 +401,6 @@ namespace PicoGK_Fasteners
         ///</summary>
         public Voxels ScrewThreaded(LocalFrame HolePosition, bool WithWasher = false)
         {
-            m_iCountFasteners++;
             LocalFrame oPosition = HolePosition;
             if (WithWasher)
             {
@@ -419,7 +420,6 @@ namespace PicoGK_Fasteners
         ///</summary>
         public Voxels ScrewBasic(LocalFrame HolePosition, bool WithWasher = false)
         {
-            m_iCountFasteners++;
             LocalFrame oPosition = HolePosition;
             if (WithWasher)
             {
@@ -547,7 +547,6 @@ namespace PicoGK_Fasteners
         ///</summary>
         public Voxels Nut(LocalFrame HolePosition, float Gap)
         {
-            m_iCountNuts++;
             LocalFrame HolePositionTranslated = FrameOffset(HolePosition, new Vector3(0, 0, -Gap));
             Voxels oNut =
                 Hex(HolePositionTranslated, -m_fNutHeight, (m_fNutSize * MathF.Sqrt(3)) / 3)
@@ -562,7 +561,6 @@ namespace PicoGK_Fasteners
         ///</summary>
         public Voxels Washer(LocalFrame HolePosition) //Add nonstandard washers in the future?
         {
-            m_iCountWashers++;
             BaseLens oWasher = new BaseLens(
                 HolePosition,
                 m_fWasherThickness,

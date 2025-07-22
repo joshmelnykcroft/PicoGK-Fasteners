@@ -1,4 +1,3 @@
-using System.Numerics;
 using Leap71.ShapeKernel;
 using PicoGK;
 
@@ -13,14 +12,14 @@ namespace CarinaLabs
             LocalFrame oOrigin = new();
             Fastener ExampleFastener = new(
                 Fastener.EHeadType.Button,
-                Fastener.EDriver.Hex,
-                3,
+                Fastener.EDriver.Philips,
+                4,
                 10,
                 1,
                 "Generic test Fastener"
             );
             Voxels voxDemo = new();
-            voxDemo = ExampleFastener.ScrewThreaded(oOrigin);
+            voxDemo = ExampleFastener.ScrewBasic(oOrigin);
             Sh.PreviewVoxels(voxDemo, Cp.clrBlue, 1);
         }
     }
