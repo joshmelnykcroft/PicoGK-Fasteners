@@ -49,6 +49,8 @@ namespace PicoGK_Fasteners
         protected float m_fNutHeight;
         protected float m_fNutSize;
         protected float m_fHexSize;
+        protected float m_fHeadHeightModifier;
+        protected float m_fFlattenedSphereDiameter;
 
         //counts for BOM TODO:check if necessary
         protected int m_iCountFasteners;
@@ -96,7 +98,7 @@ namespace PicoGK_Fasteners
             m_fHeadHeight = fSize * 0.75f;
             m_fBoreDiameter = m_fHeadDiameter * 1.25f;
             m_fDriverDepth = m_fHeadHeight * 0.8f;
-            m_fDriverSize = fSize;
+            m_fDriverSize = fSize * .75f;
             m_fWasherDiameter = fSize * 3;
             m_fWasherThickness = fSize * 0.125f;
             m_fNutHeight = fSize * 0.75f;
@@ -187,7 +189,7 @@ namespace PicoGK_Fasteners
         {
             float fRatio = 0.5f;
             float fRadius =
-                (fRatio * (m_fHeadDiameter / 2))
+                (fRatio * (m_fFlattenedSphereDiameter / 2))
                 / (
                     MathF.Sqrt(
                         (MathF.Pow(fRatio, 2) * (MathF.Pow(MathF.Sin(fTheta), 2)))
@@ -197,9 +199,10 @@ namespace PicoGK_Fasteners
             return fRadius;
         }
 
-        private Voxels FlattenedSphere(LocalFrame HolePosition, float Diameter) // TODO: add size controls
+        private Voxels FlattenedSphere(LocalFrame HolePosition, float Diameter)
         {
             BaseSphere oShape = new BaseSphere(HolePosition, Diameter / 2);
+            m_fFlattenedSphereDiameter = Diameter;
             oShape.SetRadius(new SurfaceModulation(fGetSphereRadius));
             Voxels oVoxels = oShape.voxConstruct();
             return oVoxels;
@@ -238,6 +241,7 @@ namespace PicoGK_Fasteners
                     );
                     break;
                 case EHeadType.Countersunk:
+                    m_fHeadHeightModifier = -m_fHeadHeight;
                     float fHeight =
                         (m_fHeadDiameter - (m_fHeadDiameter * .0001f))
                         * (float)Math.Tan(41 * Math.PI / 180); // Currently defaults to an 82 degree countersink
@@ -247,11 +251,11 @@ namespace PicoGK_Fasteners
                         m_fHeadDiameter / 2,
                         m_fHeadDiameter * .0001f
                     );
-                    oScrewHead = oCSHead.voxConstruct() - Driver(HolePosition);
-                    m_fHeadHeight = 0;
+                    oScrewHead = oCSHead.voxConstruct();
                     break;
                 case EHeadType.Button:
                     float fEdgeHeight = 0.05f * m_fHeadDiameter;
+                    m_fHeadHeightModifier = fEdgeHeight - m_fHeadHeight / 2;
                     BaseCylinder oHeadEdge = new(HolePosition, fEdgeHeight, m_fHeadDiameter / 2);
                     BaseCylinder oTrim = new(HolePosition, -m_fHeadDiameter, m_fHeadDiameter / 2);
                     LocalFrame oButtonFrame = FrameOffset(
@@ -261,9 +265,7 @@ namespace PicoGK_Fasteners
                     oScrewHead =
                         oHeadEdge.voxConstruct()
                         + FlattenedSphere(oButtonFrame, m_fHeadDiameter)
-                        - oTrim.voxConstruct()
-                        - Driver(HolePosition);
-                    m_fHeadHeight = fEdgeHeight + (m_fHeadDiameter / 2);
+                        - oTrim.voxConstruct();
                     break;
                 case EHeadType.SHCS:
                     BaseCylinder oSHCSBody = new BaseCylinder(
@@ -271,7 +273,7 @@ namespace PicoGK_Fasteners
                         m_fHeadHeight,
                         m_fHeadDiameter / 2
                     );
-                    oScrewHead = oSHCSBody.voxConstruct() - Driver(HolePosition);
+                    oScrewHead = oSHCSBody.voxConstruct();
 
                     break;
             }
@@ -281,7 +283,10 @@ namespace PicoGK_Fasteners
         private Voxels Driver(LocalFrame HolePosition) //TODO: These need draft angles
         {
             Voxels oDriver = new Voxels();
-            LocalFrame oTopofHead = FrameOffset(HolePosition, new Vector3(0, 0, m_fHeadHeight));
+            LocalFrame oTopofHead = FrameOffset(
+                HolePosition,
+                new Vector3(0, 0, m_fHeadHeight + m_fHeadHeightModifier)
+            );
             switch (m_eDriver)
             {
                 case EDriver.Hex:
@@ -291,16 +296,16 @@ namespace PicoGK_Fasteners
                 }
                 case EDriver.Philips:
                 {
-                    //box, subtract flattened sphere. cross boxes, cut with cup.
+                    //box, subtract flattened sphere to make cup. cross boxes, cut with cup.
                     LocalFrame oCupFrame = FrameOffset(
                         oTopofHead,
                         new Vector3(0, 0, -m_fDriverDepth / 2)
                     );
                     BaseBox oCup = new BaseBox(
                         oCupFrame,
-                        -m_fDriverDepth / 2,
-                        m_fDriverSize / 2,
-                        m_fDriverSize / 2
+                        -m_fDriverDepth,
+                        m_fDriverSize,
+                        m_fDriverSize
                     );
                     Voxels voxCup = oCup.voxConstruct() - FlattenedSphere(oCupFrame, m_fDriverSize);
 
@@ -308,12 +313,12 @@ namespace PicoGK_Fasteners
                         oTopofHead,
                         -m_fDriverDepth,
                         m_fDriverSize,
-                        m_fDriverSize / 5
+                        m_fDriverSize / 6
                     );
                     BaseBox oDriverCross2 = new BaseBox(
                         oTopofHead,
                         -m_fDriverDepth,
-                        m_fDriverSize / 5,
+                        m_fDriverSize / 6,
                         m_fDriverSize
                     );
                     oDriver = oDriverCross2.voxConstruct() + oDriverCross1.voxConstruct() - voxCup;
@@ -410,7 +415,8 @@ namespace PicoGK_Fasteners
                 ScrewHead(oPosition)
                 + MinorBody(oPosition)
                 + Threads(oPosition, m_fLength)
-                - EndChamfer(oPosition);
+                - EndChamfer(oPosition)
+                - Driver(oPosition);
             return oScrewThreaded;
         }
 
@@ -426,7 +432,10 @@ namespace PicoGK_Fasteners
                 oPosition = FrameOffset(HolePosition, new Vector3(0, 0, m_fWasherThickness));
             }
             Voxels oScrewBasic =
-                ScrewHead(oPosition) + MajorBody(oPosition) - EndChamfer(oPosition);
+                ScrewHead(oPosition)
+                + MajorBody(oPosition)
+                - EndChamfer(oPosition)
+                - Driver(oPosition);
 
             return oScrewBasic;
         }
@@ -493,10 +502,10 @@ namespace PicoGK_Fasteners
 
         ///<summary>
         ///Returns a countersunk clearance hole.
-        ///Holefit =1 is a close fit, =2 is a normal fit, =3 is a loose fit, and =0 is a custom fit TODO: add the clearance
+        ///Holefit =1 is a close fit, =2 is a normal fit, =3 is a loose fit, and =0 is a custom fit
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
         ///</summary>
-        public Voxels HoleCountersunk(LocalFrame HolePosition)
+        public Voxels HoleCountersunk(LocalFrame HolePosition, int HoleFit = 2, float customFit = 0)
         {
             //TODO: Add a option for a height offset so that the head of the screw does not have to be flush with the surface.
             float fHeight =
@@ -508,19 +517,26 @@ namespace PicoGK_Fasteners
                 m_fHeadDiameter / 2,
                 m_fHeadDiameter * 0.0001f
             );
-            Voxels oCSHole = HoleClearence(HolePosition) + oCountersink.voxConstruct();
+            Voxels oCSHole =
+                HoleClearence(HolePosition, HoleFit, customFit) + oCountersink.voxConstruct();
             return oCSHole;
         }
 
         ///<summary>
         ///Returns a counterbored clearance hole.
-        ///Holefit =1 is a close fit, =2 is a normal fit, =3 is a loose fit, and =0 is a custom fit TODO: add the clearance
+        ///Holefit =1 is a close fit, =2 is a normal fit, =3 is a loose fit, and =0 is a custom fit
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
         ///</summary>
-        public Voxels HoleCounterbored(LocalFrame HolePosition, float BoreDepth)
+        public Voxels HoleCounterbored(
+            LocalFrame HolePosition,
+            float BoreDepth,
+            int HoleFit = 2,
+            float customFit = 0
+        )
         {
             BaseCylinder oCounterBore = new(HolePosition, BoreDepth, m_fBoreDiameter / 2);
-            Voxels oCBHole = HoleClearence(HolePosition) + oCounterBore.voxConstruct();
+            Voxels oCBHole =
+                HoleClearence(HolePosition, HoleFit, customFit) + oCounterBore.voxConstruct();
             return oCBHole;
         }
 
