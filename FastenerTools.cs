@@ -370,9 +370,9 @@ namespace PicoGK_Fasteners
         ///representations, use a tap or die when manufacturing along with the tapdrill method.
         ///Takes a position from a LocalFrame.
         ///</summary>
-        private Voxels Threads(LocalFrame HolePosition, float Length) //TODO: extend threads out by one thread, then trim
+        private Voxels Threads(LocalFrame HolePosition, float Length) 
         {
-            float fTurns = Length / m_fThreadPitch;
+            float fTurns = (Length / m_fThreadPitch) + m_fThreadPitch;
 
             float fBeam1 = 0.5f * m_fThreadPitch;
             float fBeam2 = 0.1f;
@@ -382,20 +382,28 @@ namespace PicoGK_Fasteners
                 float dS = fPhi / (2f * MathF.PI) * -m_fThreadPitch;
                 Vector3 vecRel1 = VecOperations.vecGetCylPoint(m_fThreadMinor / 2, fPhi, dS);
                 Vector3 vecRel2 = VecOperations.vecGetCylPoint(m_fSize / 2, fPhi, dS);
-                Vector3 vecPt1 = VecOperations.vecTranslatePointOntoFrame(HolePosition, vecRel1);
-                Vector3 vecPt2 = VecOperations.vecTranslatePointOntoFrame(HolePosition, vecRel2);
+                Vector3 vecPt1 = VecOperations.vecTranslatePointOntoFrame(
+                    FrameOffset(HolePosition, new Vector3(0, 0, m_fThreadPitch)),
+                    vecRel1
+                );
+                Vector3 vecPt2 = VecOperations.vecTranslatePointOntoFrame(
+                    FrameOffset(HolePosition, new Vector3(0, 0, m_fThreadPitch)),
+                    vecRel2
+                );
                 oLattice.AddBeam(vecPt1, fBeam1, vecPt2, fBeam2, false);
             }
             Voxels oThreads = new Voxels(oLattice);
 
-            return oThreads;
+            BaseCylinder oTrimbody = new(HolePosition, 2 * m_fThreadPitch, m_fSize);
+
+            return oThreads - oTrimbody.voxConstruct();
         }
 
         private Voxels EndChamfer(LocalFrame HolePosition)
         {
-            Vector3 vecOffsetFromEnd = new Vector3(0, 0, -m_fLength + (m_fSize / 8));
+            Vector3 vecOffsetFromEnd = new Vector3(0, 0, -m_fLength + (m_fSize / 6));
             LocalFrame oOffsetFromEnd = FrameOffset(HolePosition, vecOffsetFromEnd);
-            BaseCylinder oBody = new(oOffsetFromEnd, -m_fSize, m_fSize / 2);
+            BaseCylinder oBody = new(oOffsetFromEnd, -m_fSize, m_fSize );
             BaseCone oCone = new(oOffsetFromEnd, -m_fSize / 2, m_fSize / 2, .001f);
             return oBody.voxConstruct() - oCone.voxConstruct();
         }
