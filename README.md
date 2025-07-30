@@ -38,6 +38,26 @@ Most methods take a LocalFrame for its position, and possibly some other info sp
 
 ## How to Use 
 
+Start by adding PicoGK-Fasteners to your project
+ 
+> git clone blah blah recursive 
+
+Include fasteners to your project by adding 
+> using PicoGK-Fasteners;
+
+To create your first fastener object, choose one of two constructors:
+
+The first constructor creates generic fastener given a few inputs.
+
+> Fastener oMyBasicFastener = new( // list inputs here)
+
+This is not a accurate representation of a fastener you'd by off the shelf, but should be close enough for you to carry on with your  project.
+
+The second constructor creates a more accurate representation of your fastener based on measurements you provide.
+
+> Fastener oMy// list inputs here
+
+
 ## Still To Do 
 
 - [] Impliment some sort of BOM export
