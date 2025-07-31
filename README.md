@@ -81,10 +81,10 @@ Once you have your fastener defined, you can call one of the following methods t
 
 ## Roadmap to release 1.0
 
-- [] Impliment some sort of BOM export
-- [] Add an offset to countersunk holes so that screw heads can sit below the surface
-- [] Tidy up code 
-- [] 
+- [ ] Impliment some sort of BOM export
+- [ ] Add an offset to countersunk holes so that screw heads can sit below the surface
+- [ ] Tidy up code 
+- [ ] 
 
 
 ## Credits
