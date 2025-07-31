@@ -1,4 +1,4 @@
-PicoGK-Fasteners 
+# PicoGK-Fasteners 
 
 ## Description
 ### PicoGK-Fasteners is a fastener and fastener utility library for your PicoGK project.
@@ -71,12 +71,12 @@ Once you have your fastener defined, you can call one of the following methods t
 
 #### Holes
 
-.HoleThreaded
-.HoleClearance
-.HoleBasic
-.HoleCounterbored
-.HoleCountersunk
-.Tapdrill
+- .HoleThreaded
+- .HoleClearance
+- .HoleBasic
+- .HoleCounterbored
+- .HoleCountersunk
+- .Tapdrill
 
 
 ## Roadmap to release 1.0
