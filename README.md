@@ -2,7 +2,7 @@
 
 ### PicoGK-Fasteners is a fastener and fastener utility library for your PicoGK project.
 
-With this library, you can add fasteners or their respective holes as voxel bodies by defining a fastener (size, length, etc.) and then calling that fastener's methods to generate the type of voxel body you want. More in the How to Use section below.
+With this library, you can generate fasteners or their respective holes as voxel bodies. By defining a fastener (size, length, etc.), and then calling that fastener's methods you can generate the type of voxel body you want. More in the How to Use section below.
 
 PicoGK-Fasteners can currently generate the following types of voxel objects:
  
@@ -49,14 +49,33 @@ To create your first fastener object, choose one of two constructors:
 
 The first constructor creates generic fastener given a few inputs.
 
-> Fastener oMyBasicFastener = new( // list inputs here)
+> Fastener oMyBasicFastener = new(Fastener.EHeadType.Button, Fastener.EDriver.Hex, fSize, fLength, fThreadPitch, sDescription)
 
 This is not a accurate representation of a fastener you'd buy off the shelf, but should be close enough for you to carry on with your  project.
 
 The second constructor creates a more accurate representation of your fastener based on measurements you provide.
 
 > Fastener oMyDefinedFastener = new(
-// list inputs here)
+            string sDiscription 
+            EHeadType eHeadType
+            EDriver eDriver 
+            float fLength 
+            float fThreadPitch
+            float fThreadMajor
+            float fThreadMinor
+            float fHeadHeight
+            float fHeadDiameter
+            float fDriverDepth
+            float fDriverSize
+            float fTapSize 
+            float fLooseFit
+            float fCloseFit
+            float fNormalfit
+            float fBoreDiameter 
+            float fWasherDiameter 
+            float fWasherThickness 
+            float fNutHeight 
+            float fNutSize 
 
 Once you have your fastener defined, you can call one of the following methods to create a variety of voxel objects that you can add or subtract to your project.
 
