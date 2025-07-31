@@ -1,9 +1,9 @@
-#PicoGK-Fasteners 
----
+PicoGK-Fasteners 
+
 ## Description
 ### PicoGK-Fasteners is a fastener and fastener utility library for your PicoGK project.
 
-With this library, you can add fasteners or their respective holes as voxel bodies by defining a fastener and then calling that fastener's methods to generate the type of voxel body you want. More in the How to Use section below.
+With this library, you can add fasteners or their respective holes as voxel bodies by defining a fastener (size, length, etc.) and then calling that fastener's methods to generate the type of voxel body you want. More in the How to Use section below.
 
 PicoGK-Fasteners can currently generate the following types of voxel objects:
  
@@ -12,6 +12,7 @@ PicoGK-Fasteners can currently generate the following types of voxel objects:
 - Countersunk 
 - Button Head 
 - Socket Head Cap Screw (SHCS)
+
 All with the following driver options:
 - Hex
 - Philips
@@ -51,14 +52,34 @@ The first constructor creates generic fastener given a few inputs.
 
 > Fastener oMyBasicFastener = new( // list inputs here)
 
-This is not a accurate representation of a fastener you'd by off the shelf, but should be close enough for you to carry on with your  project.
+This is not a accurate representation of a fastener you'd buy off the shelf, but should be close enough for you to carry on with your  project.
 
 The second constructor creates a more accurate representation of your fastener based on measurements you provide.
 
-> Fastener oMy// list inputs here
+> Fastener oMyDefinedFastener = new(
+// list inputs here)
+
+Once you have your fastener defined, you can call one of the following methods to create a variety of voxel objects that you can add or subtract to your project.
+
+#### Fasteners
+
+- .ScrewBasic
+- .ScrewThreaded
+- .Nut
+- .Washer
+- .Stack 
+
+#### Holes
+
+.HoleThreaded
+.HoleClearance
+.HoleBasic
+.HoleCounterbored
+.HoleCountersunk
+.Tapdrill
 
 
-## Still To Do 
+## Roadmap to release 1.0
 
 - [] Impliment some sort of BOM export
 - [] Add an offset to countersunk holes so that screw heads can sit below the surface
@@ -67,5 +88,6 @@ The second constructor creates a more accurate representation of your fastener b
 
 
 ## Credits
+Thanks to Leap71 for creating and sharing PicoGK , as well as writing the Coding for Engineers book.
 
 
