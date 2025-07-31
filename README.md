@@ -1,6 +1,5 @@
 # PicoGK-Fasteners 
 
-## Description
 ### PicoGK-Fasteners is a fastener and fastener utility library for your PicoGK project.
 
 With this library, you can add fasteners or their respective holes as voxel bodies by defining a fastener (size, length, etc.) and then calling that fastener's methods to generate the type of voxel body you want. More in the How to Use section below.
