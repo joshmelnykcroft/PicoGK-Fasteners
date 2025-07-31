@@ -55,27 +55,7 @@ This is not a accurate representation of a fastener you'd buy off the shelf, but
 
 The second constructor creates a more accurate representation of your fastener based on measurements you provide.
 
-> Fastener oMyDefinedFastener = new(
-            string sDiscription 
-            EHeadType eHeadType
-            EDriver eDriver 
-            float fLength 
-            float fThreadPitch
-            float fThreadMajor
-            float fThreadMinor
-            float fHeadHeight
-            float fHeadDiameter
-            float fDriverDepth
-            float fDriverSize
-            float fTapSize 
-            float fLooseFit
-            float fCloseFit
-            float fNormalfit
-            float fBoreDiameter 
-            float fWasherDiameter 
-            float fWasherThickness 
-            float fNutHeight 
-            float fNutSize 
+> Fastener oMyDefinedFastener = new(); //Leave blank to default to M5x10 SHCS, or change individual properties to what you need.
 
 Once you have your fastener defined, you can call one of the following methods to create a variety of voxel objects that you can add or subtract to your project.
 
