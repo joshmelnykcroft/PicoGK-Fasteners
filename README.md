@@ -40,7 +40,7 @@ Most methods take a LocalFrame for its position, and possibly some other info sp
 
 Start by adding PicoGK-Fasteners to your project
  
-> git clone blah blah recursive 
+> git submodule add //get link
 
 Include fasteners to your project by adding 
 > using PicoGK-Fasteners;
