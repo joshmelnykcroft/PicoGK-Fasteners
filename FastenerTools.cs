@@ -409,7 +409,7 @@ namespace PicoGK_Fasteners
         }
 
         ///<summary>
-        ///This returns a cosmetically threaded screw with the size and head type specified.
+        ///This returns a cosmetically threaded screw with the size and head type specified by the object constructor. Set WithWasher to true if you want to lift the screw by the width of a washer.
         ///Takes a position from a LocalFrame.
         ///</summary>
         public Voxels ScrewThreaded(LocalFrame HolePosition, bool WithWasher = false)
@@ -429,7 +429,7 @@ namespace PicoGK_Fasteners
         }
 
         ///<summary>
-        ///This returns a non-threaded screw with the size represented by the major diameter and end head type specified.
+        ///This returns a non-threaded screw with the size represented by the major diameter and end head type specified by the object constructor. Set WithWasher to true if you want to lift the screw by the width of a washer.
         ///Takes a position from a LocalFrame.
         ///</summary>
         public Voxels ScrewBasic(LocalFrame HolePosition, bool WithWasher = false)
@@ -451,7 +451,7 @@ namespace PicoGK_Fasteners
         ///<summary>
         ///This method provide a cylinder sized for a clearance fit for the parent fastener.
         ///Holefit =1 is a close fit, =2 is a normal fit, =3 is a loose fit, and =0 is a
-        ///custom fit where you define your desired hole diameter in the last valuc customFit.
+        ///custom fit where you define your desired hole diameter in the last value customFit.
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
         ///</summary>
         public Voxels HoleClearence(LocalFrame HolePosition, int HoleFit = 2, float customFit = 0)
@@ -496,7 +496,7 @@ namespace PicoGK_Fasteners
         }
 
         ///<summary>
-        ///Returns a non-threaded cylinder for use in creating holes with the minor diameter of the chosen fastener..
+        ///Returns a non-threaded cylinder for use in creating holes with the minor diameter of the chosen fastener.
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
         ///Depth of the tapped section of the hole is equal to the length of the fastener plus three threads.
         ///</summary>
@@ -549,7 +549,7 @@ namespace PicoGK_Fasteners
         }
 
         ///<summary>
-        ///Returns a hole sized for a tap for the chosen fastener. Don't forget to account for tool access for your tap!
+        ///Returns a hole sized for a tap for the chosen fastener. 
         ///Use by locating with a LocalFrame, and subtracting the resulting voxel body from your object.
         ///Drills to a depth equal to the length specifed plus 1/2 the major diameter of the tap.
         ///</summary>
@@ -566,7 +566,7 @@ namespace PicoGK_Fasteners
         }
 
         ///<summary>
-        ///Returns a simple nut for the chosen fastener.
+        ///Returns a simple hex nut for the chosen fastener.
         ///Use by locating with a LocalFrame, specfiying the distance from the head with Gap.
         ///</summary>
         public Voxels Nut(LocalFrame HolePosition, float Gap)
@@ -595,7 +595,7 @@ namespace PicoGK_Fasteners
         }
 
         ///<summary>
-        ///Returns a fastener-washer-gap-washer-nut stack for the chosen fastener.
+        ///Returns a Fastener-Washer-Gap-Washer-Nut stack for the chosen fastener.
         ///Use by locating with a LocalFrame, specfiying the distance to the bottom washer from the top washer with Gap.
         ///</summary>
         public Voxels Stack(LocalFrame HolePosition, float Gap)
