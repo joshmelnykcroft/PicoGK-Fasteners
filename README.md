@@ -31,17 +31,19 @@ All with the following driver options:
 - Fastener Stacks (Fastener/Washer/Gap/Washer/Nut)
 
 Most methods take a LocalFrame for its position, and possibly some other info specific to that method. 
-You can run the example file by running the following:
 
-> try
-> {
->    PicoGK.Library.Go(0.05f, CarinaLabs.FastenerExample.Task);
-> }
-> catch (Exception e)
-> {
->     // Apparently something went wrong, output here
->     Console.WriteLine(e);
-> }
+You can run the example file by running the following:
+```
+try
+{
+   PicoGK.Library.Go(0.05f, CarinaLabs.FastenerExample.Task);
+}
+catch (Exception e)
+{
+    // Apparently something went wrong, output here
+    Console.WriteLine(e);
+}
+```
 
 ## Dependencies
  - PicoGK
@@ -51,7 +53,7 @@ You can run the example file by running the following:
 
 Start by adding PicoGK-Fasteners to your project
  
-> git submodule add //get link
+> git submodule add https://github.com/joshmelnykcroft/PicoGK-Fasteners
 
 Include fasteners to your project by adding 
 > using PicoGK-Fasteners;
@@ -93,10 +95,9 @@ Once you have your fastener defined, you can call one of the following methods t
 - [ ] Impliment some sort of BOM export
 - [ ] Add an offset to countersunk holes so that screw heads can sit below the surface
 - [ ] Tidy up code 
-- [ ] 
 
 
 ## Credits
 Thanks to Leap71 for creating and sharing PicoGK , as well as writing the Coding for Engineers book.
-Also thanks to you, if you decide to try this out and use it. PR's are welcome if you have an fix/idea/feature that you want to contribute!kkkk
+Also thanks to you, if you decide to try this out and use it. PR's are welcome if you have an fix/idea/feature that you want to contribute!
 
