@@ -31,6 +31,17 @@ All with the following driver options:
 - Fastener Stacks (Fastener/Washer/Gap/Washer/Nut)
 
 Most methods take a LocalFrame for its position, and possibly some other info specific to that method. 
+You can run the example file by running the following:
+
+> try
+> {
+>    PicoGK.Library.Go(0.05f, CarinaLabs.FastenerExample.Task);
+> }
+> catch (Exception e)
+> {
+>     // Apparently something went wrong, output here
+>     Console.WriteLine(e);
+> }
 
 ## Dependencies
  - PicoGK
@@ -55,7 +66,7 @@ This is not a accurate representation of a fastener you'd buy off the shelf, but
 
 The second constructor creates a more accurate representation of your fastener based on measurements you provide.
 
-> Fastener oMyDefinedFastener = new(); //Leave blank to default to M5x10 SHCS, or change individual properties to what you need.
+> Fastener oMyDefinedFastener = new(); //Leave blank to default to M5x10 SHCS, or change individual properties (as described by the constructor) to what you need.
 
 Once you have your fastener defined, you can call one of the following methods to create a variety of voxel objects that you can add or subtract to your project.
 
@@ -87,5 +98,5 @@ Once you have your fastener defined, you can call one of the following methods t
 
 ## Credits
 Thanks to Leap71 for creating and sharing PicoGK , as well as writing the Coding for Engineers book.
-
+Also thanks to you, if you decide to try this out and use it. PR's are welcome if you have an fix/idea/feature that you want to contribute!kkkk
 
