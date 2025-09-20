@@ -51,6 +51,7 @@ namespace PicoGK_Fasteners
         protected float m_fHexSize;
         protected float m_fHeadHeightModifier;
         protected float m_fFlattenedSphereDiameter;
+        protected float m_fCSOffset;
 
         //counts for BOM TODO:check if necessary
         protected int m_iCountFasteners;
@@ -58,7 +59,7 @@ namespace PicoGK_Fasteners
         protected int m_iCountWashers;
 
         ///<summary>
-        /// This constuctor defines a generic fastener based on a few primary chararteristics.
+        /// This constuctor defines a generic fastener based on a few primary characteristics.
         /// If you have a standard or measurements of the fastener that you want to use, use the other constructor.
         /// Any measurements of a Hex is done across the flats.
         /// </summary>
@@ -103,6 +104,7 @@ namespace PicoGK_Fasteners
             m_fWasherThickness = fSize * 0.125f;
             m_fNutHeight = fSize * 0.75f;
             m_fNutSize = fSize * 2;
+            m_fCSOffset = 0;
         }
 
         ///<summary>
@@ -128,6 +130,7 @@ namespace PicoGK_Fasteners
             float fCloseFit = 5.3f,
             float fNormalfit = 5.5f,
             float fBoreDiameter = 9.75f,
+            float fCounterSunkOffset = 0,
             float fWasherDiameter = 15,
             float fWasherThickness = 1.2f,
             float fNutHeight = 4,
@@ -154,6 +157,7 @@ namespace PicoGK_Fasteners
             m_fWasherThickness = fWasherThickness;
             m_fNutHeight = fNutHeight;
             m_fNutSize = fNutSize;
+            m_fCSOffset = fCounterSunkOffset;
         }
 
         ///<summary>
@@ -162,10 +166,10 @@ namespace PicoGK_Fasteners
         ///</summary>
         public Voxels ScrewThreaded(LocalFrame HolePosition, bool WithWasher = false)
         {
-            LocalFrame oPosition = HolePosition;
+            LocalFrame oPosition = FrameOffset(HolePosition, new Vector3(0, 0, -m_fCSOffset));
             if (WithWasher)
             {
-                oPosition = FrameOffset(HolePosition, new Vector3(0, 0, m_fWasherThickness));
+                oPosition = FrameOffset(oPosition, new Vector3(0, 0, m_fWasherThickness));
             }
             Voxels oScrewThreaded =
                 ScrewHead(oPosition)
@@ -182,10 +186,10 @@ namespace PicoGK_Fasteners
         ///</summary>
         public Voxels ScrewBasic(LocalFrame HolePosition, bool WithWasher = false)
         {
-            LocalFrame oPosition = HolePosition;
+            LocalFrame oPosition = FrameOffset(HolePosition, new Vector3(0, 0, -m_fCSOffset));
             if (WithWasher)
             {
-                oPosition = FrameOffset(HolePosition, new Vector3(0, 0, m_fWasherThickness));
+                oPosition = FrameOffset(oPosition, new Vector3(0, 0, m_fWasherThickness));
             }
             Voxels oScrewBasic =
                 ScrewHead(oPosition)
@@ -222,10 +226,17 @@ namespace PicoGK_Fasteners
             }
 
             float m_fHoleRadius = m_fFit / 2;
-            BaseCylinder oHole = new BaseCylinder(HolePosition, -m_fLength, m_fHoleRadius);
+            BaseCylinder oHole = new BaseCylinder(
+                HolePosition,
+                -m_fLength - m_fCSOffset,
+                m_fHoleRadius
+            );
             Voxels oHoleClearance =
                 oHole.voxConstruct()
-                + DrillTip(FrameOffset(HolePosition, new Vector3(0, 0, -m_fLength)), m_fHoleRadius);
+                + DrillTip(
+                    FrameOffset(HolePosition, new Vector3(0, 0, -m_fLength - m_fCSOffset)),
+                    m_fHoleRadius
+                );
             return oHoleClearance;
         }
 
@@ -265,12 +276,14 @@ namespace PicoGK_Fasteners
         {
             //TODO: Add a option for a height offset so that the head of the screw does not have to be flush with the surface.
             float fHeight =
-                (m_fHeadDiameter / 2 - (m_fHeadDiameter * 0.0001f))
-                * (float)Math.Tan(41 * Math.PI / 180);
+                (
+                    (m_fHeadDiameter / 2)
+                    - (m_fHeadDiameter * 0.0001f) * MathF.Tan(41 * MathF.PI / 360)
+                ) + m_fCSOffset;
             BaseCone oCountersink = new BaseCone(
                 HolePosition,
                 -fHeight,
-                m_fHeadDiameter / 2,
+                fHeight / MathF.Tan(41 * MathF.PI / 360),
                 m_fHeadDiameter * 0.0001f
             );
             Voxels oCSHole =
@@ -308,7 +321,7 @@ namespace PicoGK_Fasteners
             BaseCylinder oTapDrill = new BaseCylinder(HolePosition, -m_fTapDepth, m_fTapSize / 2);
             return oTapDrill.voxConstruct()
                 + DrillTip(
-                    FrameOffset(HolePosition, new Vector3(0, 0, -m_fTapDepth)),
+                    FrameOffset(HolePosition, new Vector3(0, 0, -m_fTapDepth - m_fCSOffset)),
                     m_fTapSize / 2
                 );
         }
