@@ -274,16 +274,11 @@ namespace PicoGK_Fasteners
         ///</summary>
         public Voxels HoleCountersunk(LocalFrame HolePosition, int HoleFit = 2, float customFit = 0)
         {
-            //TODO: Add a option for a height offset so that the head of the screw does not have to be flush with the surface.
-            float fHeight =
-                (
-                    (m_fHeadDiameter / 2)
-                    - (m_fHeadDiameter * 0.0001f) * MathF.Tan(41 * MathF.PI / 360)
-                ) + m_fCSOffset;
+            float fHeight = ((m_fHeadDiameter / 2) * MathF.Tan(41 * MathF.PI / 180)) + m_fCSOffset;
             BaseCone oCountersink = new BaseCone(
                 HolePosition,
                 -fHeight,
-                fHeight / MathF.Tan(41 * MathF.PI / 360),
+                fHeight / MathF.Tan(41 * MathF.PI / 180),
                 m_fHeadDiameter * 0.0001f
             );
             Voxels oCSHole =

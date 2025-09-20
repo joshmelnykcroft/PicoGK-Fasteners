@@ -94,7 +94,7 @@ namespace PicoGK_Fasteners
                     m_fHeadHeightModifier = -m_fHeadHeight;
                     float fHeight =
                         ((m_fHeadDiameter / 2) - (m_fHeadDiameter * .0001f))
-                        * MathF.Tan(41 * MathF.PI / 360); // Currently defaults to an 82 degree countersink
+                        * MathF.Tan(41 * MathF.PI / 180); // Currently defaults to an 82 degree countersink
                     BaseCone oCSHead = new BaseCone(
                         HolePosition,
                         -fHeight,
